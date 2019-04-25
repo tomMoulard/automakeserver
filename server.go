@@ -13,10 +13,15 @@ import (
     "strings"
 )
 
-var script = ""
+var (
+    script = ""
+    errorLog *os.File
+    logger *log.Logger
+)
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
     fmt.Fprint(w, "Welcome!\n")
+    logger.Println("GET  request")
 }
 
 func Update(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -30,6 +35,7 @@ func Update(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
         return
     }
     defer r.Body.Close()
+    logger.Printf("POST request: %s\n", request.Action)
     go func(request *structs.GitStruct) {
         actions := map[string] bool {
             "created": true,
@@ -47,12 +53,24 @@ func Update(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
     }(&request)
 }
 
+func initLog(logFile string) {
+    errorLog, err := os.OpenFile(logFile,
+        os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+    if err != nil {
+        fmt.Printf("Could not open the logging file: %v\n", err)
+        os.Exit(1)
+    }
+    logger = log.New(errorLog, "", log.LstdFlags)
+}
+
 func main() {
     parser := argparse.NewParser("automakeserver","Get POST request from Github and launch scripts")
     port := parser.String("p", "port",
         &argparse.Options{Default: "8080", Help:"Server port"})
     scrpt := parser.String("s", "scipt",
         &argparse.Options{Default: "script.sh", Help:"Script to execute"})
+    logFile := parser.String("l", "log",
+        &argparse.Options{Default: "log_file.log", Help:"Logging file"})
     err := parser.Parse(os.Args)
     if err != nil {
         fmt.Println(parser.Usage(err))
@@ -62,6 +80,7 @@ func main() {
     var portBuilder strings.Builder
     portBuilder.WriteString(":")
     portBuilder.WriteString(*port)
+    initLog(*logFile)
 
     router := httprouter.New()
     router.GET("/", Index)
