@@ -7,3 +7,5 @@ the conditions are good
 $ make
 $ ./server
 ```
+
+Now you can send POST request to `localhost:8080`
