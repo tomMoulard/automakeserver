@@ -9,3 +9,17 @@ $ ./server
 ```
 
 Now you can send POST request to `localhost:8080`
+
+### Fix
+
+if you get an error like:
+```bash
+$ make
+server.go:6:5: cannot find package ...
+```
+
+Try:
+```
+$ go get
+$ make
+```
