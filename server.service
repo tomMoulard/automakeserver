@@ -1,0 +1,10 @@
+[Unit]
+Description=Server to catch POST request from github
+
+[Service]
+ExecStart=/bin/sh /root/start.sh
+Type=simple
+User=root
+
+[Install]
+WantedBy=multi-user.target
